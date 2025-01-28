@@ -80,7 +80,7 @@ def dumpconfig(switch_ip, txt_file_name):
     switch_hostname = (net_connect.send_command('show conf | include hostname').split()[1])
 
     print(f"Dumping config on: {switch_hostname}\n")
-    net_connect.send_config_from_file(txt_file_name)
+    net_connect.send_config_from_file(txt_file_name + ".txt")
     net_connect.send_command("wr mem")
     print(f"Config successfully dumped on: {switch_hostname}\n")
 
