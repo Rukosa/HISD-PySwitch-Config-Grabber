@@ -1,26 +1,22 @@
 #A menu of options that the user can execute if only one of these is needed
-from on_switch_functions import grabconfigtxt
+from off_switch_functions import *
 
-option_list = '''
+option_txt = '''
 1. Grab configs
-2. Dump a config
+2. Dump configs
 '''
 
-def grab_configs():
-    print('''
-          1. Grab one config
-          2. Grab campus configs
-          3. Grab ALL configs 
-          ''')
-    choice = input("#")
-    
-    
-    #fill in inputs
-    
-def dump_config():
-    print("Name of config txt file: ")
-    #Create function to dump config line by line
+option_list = {
+"1":(grab_configs_opt), #Grab configs
+"2":(dump_config_opt) #Dump configs
+}
 
-#print("Please choose an option below: " + option_list)
-txt_file = input("Text file to grab ip(s) from [no file extension!]: ")
-grabconfigtxt(txt_file)
+while(True):
+    print("\n--------------------------")
+    print(option_txt)
+    choice = input("#")
+    if choice in list(option_list.keys()):
+        option_list[choice]()
+    else:
+        print("Invalid input")     
+    
