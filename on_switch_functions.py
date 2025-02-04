@@ -129,6 +129,11 @@ def dumpconfig(switch_ip, txt_file_name):
         print("--------------------------")
 
 
+#changes an interface on a switch
+def change_interface(switch_ip, config_dict):
+    print(config_dict)
+
+
 #Makes a list of ip addresses from a text file
 def Get_Switch_List(txt_file):
     switch_txt = open(txt_file, "r")

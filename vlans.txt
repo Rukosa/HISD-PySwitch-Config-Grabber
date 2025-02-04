@@ -1,0 +1,40 @@
+#This functions as if it were evaluating it as a nested dictionary in Python! Assuming it is written as such it will work.
+#Ensure you have a comma after the model brackets!
+#There is a small bug with variable replacement. Do not include a full variable name in another spot. For example: *INTERNET_ACCESS* and *INTERNET_ACCES_AGAIN* does not work!
+{
+"1234": {
+"INTERNET ACCESS": [
+"switchport access vlan *INTERNET_ACCESS*",
+"mls qos trust cos",
+"auto qos voip cisco-phone",
+"spanning-tree portfast",
+"spanning-tree guard root",
+"service-policy input AutoQoS-Police-CiscoPhone"
+],
+"WIRELESS AP": [
+"switchport access vlan *WIRELESS_AP*",
+"more wireless settings",
+"some other setting"
+]
+}, 
+
+"5678": {
+"INTERNET ACCESS": [
+"switchport access vlan *INTERNET_ACCESS*",
+"mls qos trust cos",
+"auto qos voip cisco-phone",
+"spanning-tree portfast",
+"spanning-tree guard root",
+"service-policy input AutoQoS-Police-CiscoPhone"
+],
+"WIRELESS AP": [
+"switchport access vlan *WIRELESS_AP*",
+"more wireless settings",
+"some other setting"
+]
+},
+
+
+}
+
+

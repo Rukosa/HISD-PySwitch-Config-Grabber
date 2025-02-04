@@ -80,6 +80,56 @@ def check_txt_exists(txt_file):
     print(f"{txt_file}.txt does not exist...")
     return False
 
+#choose switch model, set vlans, select interface, select vlan, do work
+#Maybe connect to a switch and attempt automatic model picking? show version | include Model Number -> select it from text file and ask for vlans, ask for interface, ask vlan, change
+def edit_vlans_opt(switch_ip=0, serial_or_network=0, config_set=False, current_config=0):
+    #auto connection here
+    if config_set == False:
+        switch_models = open("vlans.txt", "r")
+        vlan_text = ""
+    
+        for line in switch_models:
+            vlan_text = vlan_text + line
+        switch_models.close()
+        vlan_configs, vlan_vars = parse_dict_with_variables(vlan_text)
+        current_config = (vlan_configs, vlan_vars)
+        config_set = True
+    else:
+        vlan_configs = current_config[0]
+        vlan_vars = current_config[1]
+        config_set = True
+    
+    #Manual selection vvvvv------
+    print("\n-----Select a model from the list-----")
+    model_selection_dict = {}
+    for index, switch in enumerate(list(vlan_vars.keys())):
+        index = index + 1
+        print(str(index) + ". " + switch)
+        model_selection_dict.update({str(index): switch})
+    
+    model_selected = input("Select a model: ")
+    selected_config = set_variables_for_selected_model(vlan_configs, vlan_vars, model_selection_dict[model_selected])
+    
+    if serial_or_network == 0:
+        print('''
+    1. Serial
+    2. Network
+            ''')
+        serial_or_network = input('#')
+    if serial_or_network == '1':
+        switch_ip = 'serial'
+    elif not (serial_or_network == '2') and not (serial_or_network == '1'):
+        print("Invalid input")
+        edit_vlans_opt(0, 0, config_set, current_config)
+        return
+    #ask for ip then select an interface after connection established
+    if switch_ip == 0:
+        switch_ip = input("IP of switch: ")
+        if not check_ip(switch_ip):
+            print("IP is invalid...")
+            edit_vlans_opt(0, serial_or_network, config_set, current_config)
+            return
+    change_interface(switch_ip, selected_config[model_selection_dict[model_selected]])
 
 
 
@@ -179,11 +229,12 @@ vlan_text = config_text = """
 }
 """
 
+
+'''
 test_vlan, vlan_vars = parse_dict_with_variables(vlan_text)
 from pprint import pprint
-pprint(vlan_vars)
+print(list(vlan_vars.keys()))
+print(vlan_vars)
 updated_config = set_variables_for_selected_model(test_vlan, vlan_vars, '5678')
 pprint(updated_config)
-
-
-
+'''

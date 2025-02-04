@@ -10,7 +10,7 @@ option_txt = '''
 option_list = {
 "1":(grab_configs_opt), #Grab configs
 "2":(dump_config_opt), #Dump configs
-"3":('edit_vlans_opt')
+"3":(edit_vlans_opt)
 }
 
 while(True):
@@ -21,4 +21,4 @@ while(True):
         option_list[choice]()
     else:
         print("Invalid input")     
-    
+    3
