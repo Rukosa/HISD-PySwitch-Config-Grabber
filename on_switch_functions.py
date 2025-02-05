@@ -129,9 +129,44 @@ def dumpconfig(switch_ip, txt_file_name):
         print("--------------------------")
 
 
-#changes an interface on a switch
+#Changes an interface on a switch
 def change_interface(switch_ip, config_dict):
-    print(config_dict)
+    try:
+        net_connect = ConnectHandler(**switch_connect(switch_ip))
+        switch_hostname = (net_connect.send_command('show conf | include hostname').split()[1])
+        #Splits up some of the interfaces into an easier output/input
+        interface_array = (net_connect.send_command('show conf | include interface GigabitEthernet').splitlines())
+        filtered_array = [item for item in interface_array if "GigabitEthernet0/0" not in item.split()]
+        for index, interface in enumerate(filtered_array):
+            index = index + 1
+            print(str(index) + ". " + interface)
+        selected_interface = filtered_array[int(input("Select a port number: ")) - 1]
+        #Splits up the vlans into an easier output/input
+        vlan_array = []
+        for index, vlan_key in enumerate(config_dict.keys()):
+            index = index + 1
+            print(str(index) + ". " + vlan_key)
+            vlan_array.append(vlan_key)
+        vlan_input = config_dict[vlan_array[int(input("Select a vlan: ")) - 1]]
+        vlan_input.insert(0, selected_interface)
+        
+        #Defaults the interface then sets it given the settings. *Default is deciding not to default interfaces right now but doesnt fail..
+        net_connect.send_config_set("default" + selected_interface)
+        send_vlan = (net_connect.send_config_set(vlan_input))
+        net_connect.send_command("wr mem")
+        print(send_vlan)
+        
+        repeat_change = input("Change another (y/n): ")
+        if repeat_change == "y":
+            change_interface(switch_ip, config_dict)
+            return
+        return
+        
+
+    except Exception as err:
+        print("--------------------------")
+        #print(err)
+        print("--------------------------")
 
 
 #Makes a list of ip addresses from a text file

@@ -74,42 +74,43 @@ def dump_config_opt(switch_ip=0, dump_txt=0, serial_or_network=0):
         print("Invalid input")
         dump_config_opt(switch_ip, dump_txt, serial_or_network)
         
-def check_txt_exists(txt_file):
-    if os.path.exists(txt_file + ".txt"):
-        return True
-    print(f"{txt_file}.txt does not exist...")
-    return False
 
-#choose switch model, set vlans, select interface, select vlan, do work
-#Maybe connect to a switch and attempt automatic model picking? show version | include Model Number -> select it from text file and ask for vlans, ask for interface, ask vlan, change
-def edit_vlans_opt(switch_ip=0, serial_or_network=0, config_set=False, current_config=0):
-    #auto connection here
-    if config_set == False:
+
+#Changes vlans on switch. Most inputs are validated so it is unlikely the user will run into issues after choosing a model.
+def edit_vlans_opt(switch_ip=0, serial_or_network=0, config_set=False, current_config=None, model_selected=""):
+    #auto connection here??
+    #Manual selection vvvvv------
+    model_selection_dict = {}
+    if not config_set:
         switch_models = open("vlans.txt", "r")
         vlan_text = ""
-    
+
+        #Loads up the vlan text file and parses variables from them
         for line in switch_models:
             vlan_text = vlan_text + line
         switch_models.close()
         vlan_configs, vlan_vars = parse_dict_with_variables(vlan_text)
         current_config = (vlan_configs, vlan_vars)
+        
+        #Displays the model list and loads them up into a dictionary to get their keys later. Then asks to set variables for said model
+        #Else config_set=True will assume these steps have already been done and uses the tuple argument
+        print("\n-----Select a model from the list-----")
+        for index, switch in enumerate(list(vlan_vars.keys())):
+            index = index + 1
+            print(str(index) + ". " + switch)
+            model_selection_dict.update({str(index): switch})
+        
+        model_selected = input("Select a model: ")
+        selected_config = set_variables_for_selected_model(vlan_configs, vlan_vars, model_selection_dict[model_selected])
         config_set = True
     else:
-        vlan_configs = current_config[0]
+        selected_config = vlan_configs = current_config[0]
         vlan_vars = current_config[1]
-        config_set = True
+        for index, switch in enumerate(list(vlan_vars.keys())):
+            index = index + 1
+            model_selection_dict.update({str(index): switch})
     
-    #Manual selection vvvvv------
-    print("\n-----Select a model from the list-----")
-    model_selection_dict = {}
-    for index, switch in enumerate(list(vlan_vars.keys())):
-        index = index + 1
-        print(str(index) + ". " + switch)
-        model_selection_dict.update({str(index): switch})
-    
-    model_selected = input("Select a model: ")
-    selected_config = set_variables_for_selected_model(vlan_configs, vlan_vars, model_selection_dict[model_selected])
-    
+    #Serial or network logic + ip logic
     if serial_or_network == 0:
         print('''
     1. Serial
@@ -120,24 +121,20 @@ def edit_vlans_opt(switch_ip=0, serial_or_network=0, config_set=False, current_c
         switch_ip = 'serial'
     elif not (serial_or_network == '2') and not (serial_or_network == '1'):
         print("Invalid input")
-        edit_vlans_opt(0, 0, config_set, current_config)
+        edit_vlans_opt(0, 0, config_set, current_config, model_selected)
         return
-    #ask for ip then select an interface after connection established
     if switch_ip == 0:
         switch_ip = input("IP of switch: ")
         if not check_ip(switch_ip):
             print("IP is invalid...")
-            edit_vlans_opt(0, serial_or_network, config_set, current_config)
+            edit_vlans_opt(0, serial_or_network, config_set, current_config, model_selected)
             return
     change_interface(switch_ip, selected_config[model_selection_dict[model_selected]])
 
 
-
+#Next 2 functions are courtesy of some *heavily* modified chatgpt code! It made some good comments so I'm leaving them :)
+#Parses an input structered like a dictionary and extracts variables wrapped in *asterisk*
 def parse_dict_with_variables(config_text):
-    """
-    Parses a structured dictionary-like text input, extracting all variables 
-    that are wrapped in asterisks (*ANYTHING*).
-    """
     try:
         config_dict = ast.literal_eval(config_text)  # Convert text to dictionary
     except (SyntaxError, ValueError) as e:
@@ -158,7 +155,8 @@ def parse_dict_with_variables(config_text):
                     config_dict[model][vlan_name][i] = line.replace(f"*{var_name}*", var_name)  # Keep placeholder
 
     return config_dict, vlan_variables  # Return updated config and extracted variables
-    
+
+#Modifies the config dictionary given the selected switch model
 def set_variables_for_selected_model(config_dict, vlan_variables, selected_model):
     """
     Set variables for the selected model by prompting for input and updating the config.
@@ -183,58 +181,11 @@ def set_variables_for_selected_model(config_dict, vlan_variables, selected_model
                 if var_name in line:
                     config_dict[selected_model][vlan_name][i] = line.replace(var_name, user_input)
 
-    return config_dict  # Return the updated config with variables set for the selected model
+    return config_dict  # Return the updated config with variables set for the selected model (easier to return the whole thing and select later!)
 
-    
-    
-
-vlan_text = config_text = """
-#This functions as if it were evaluating it as a nested dictionary in Python! Assuming it is written as such it will work.
-#Ensure you have a comma after the model brackets!
-{
-
-"1234": {
-"INTERNET ACCESS": [
-"switchport access vlan *INTERNET_ACCESS*",
-"mls qos trust cos",
-"auto qos voip cisco-phone",
-"spanning-tree portfast",
-"spanning-tree guard root",
-"service-policy input AutoQoS-Police-CiscoPhone"
-],
-"WIRELESS AP": [
-"switchport access vlan *WIRELESS_AP*",
-"more wireless settings",
-"some other setting"
-]
-}, 
-
-"5678": {
-"INTERNET ACCESS": [
-"switchport access vlan *INTERNET_ACCESS*",
-"mls qos trust cos",
-"auto qos voip cisco-phone",
-"spanning-tree portfast",
-"spanning-tree guard root",
-"service-policy input AutoQoS-Police-CiscoPhone"
-],
-"WIRELESS AP": [
-"switchport access vlan *WIRELESS_AP*",
-"more wireless settings",
-"some other setting"
-]
-},
-
-
-}
-"""
-
-
-'''
-test_vlan, vlan_vars = parse_dict_with_variables(vlan_text)
-from pprint import pprint
-print(list(vlan_vars.keys()))
-print(vlan_vars)
-updated_config = set_variables_for_selected_model(test_vlan, vlan_vars, '5678')
-pprint(updated_config)
-'''
+#Finds if a text file exists
+def check_txt_exists(txt_file):
+    if os.path.exists(txt_file + ".txt"):
+        return True
+    print(f"{txt_file}.txt does not exist...")
+    return False
