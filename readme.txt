@@ -1,4 +1,4 @@
-Program that grabs and dumps configs for cisco ios devices.
+Program that grabs/dumps configs and quickly edits vlans for cisco ios devices.
 
 Requires Python 3.12 (LTS Microsoft Store Works!)
 Install requirements by running start.bat
