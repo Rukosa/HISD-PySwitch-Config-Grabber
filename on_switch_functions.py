@@ -130,10 +130,10 @@ def dumpconfig(switch_ip, txt_file_name):
 
 
 #Changes an interface on a switch
-def change_interface(switch_ip, config_dict):
+def change_interface(switch_ip, config_dict, connected=False, net_connect=None):
     try:
-        net_connect = ConnectHandler(**switch_connect(switch_ip))
-        switch_hostname = (net_connect.send_command('show conf | include hostname').split()[1])
+        if not connected:
+            net_connect = ConnectHandler(**switch_connect(switch_ip))
         #Splits up some of the interfaces into an easier output/input
         interface_array = (net_connect.send_command('show conf | include interface GigabitEthernet').splitlines())
         filtered_array = [item for item in interface_array if "GigabitEthernet0/0" not in item.split()]
@@ -147,7 +147,7 @@ def change_interface(switch_ip, config_dict):
             index = index + 1
             print(str(index) + ". " + vlan_key)
             vlan_array.append(vlan_key)
-        vlan_input = config_dict[vlan_array[int(input("Select a vlan: ")) - 1]]
+        vlan_input = config_dict[vlan_array[int(input("Select a vlan: ")) - 1]].copy()
         vlan_input.insert(0, selected_interface)
         
         #Defaults the interface then sets it given the settings. *Default is deciding not to default interfaces right now but doesnt fail..
@@ -158,14 +158,14 @@ def change_interface(switch_ip, config_dict):
         
         repeat_change = input("Change another (y/n): ")
         if repeat_change == "y":
-            change_interface(switch_ip, config_dict)
+            change_interface(switch_ip, config_dict, True, net_connect)
             return
         return
         
 
     except Exception as err:
         print("--------------------------")
-        #print(err)
+        print(err)
         print("--------------------------")
 
 
