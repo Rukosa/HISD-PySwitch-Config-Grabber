@@ -168,6 +168,40 @@ def change_interface(switch_ip, config_dict, connected=False, net_connect=None):
         print(err)
         print("--------------------------")
 
+def find_mac(mac, txt_file_name):
+    switch_list = Get_Switch_List(f"{txt_file_name}.txt")
+    username = input("Username: ")
+    try:
+        password = getpass.getpass()
+    except Exception as err:
+        print("--------------------------")
+        print(err)
+        print("--------------------------")
+
+    for switch_ip in switch_list:
+        if not check_ip(switch_ip):
+            print(f"IP {switch_ip} is invalid... Skipping...")
+            continue
+        try:
+            net_connect = ConnectHandler(**switch_connect(switch_ip, username, password))
+            
+            switch_hostname = (net_connect.send_command('show conf | include hostname').split()[1])
+            mac_output = net_connect.send_command('show mac address-table | include ' + mac)
+            if mac in mac_output:
+                print("--------------------------")
+                print("MAC Found at:")
+                print(switch_ip)
+                print(switch_hostname + " " + mac_output)
+                print("--------------------------")
+                return
+            
+            time.sleep(1) #As to not attempt to make every connection in half a second...
+        except Exception as err:
+            print("--------------------------")
+            print(switch_ip)
+            print(err)
+            print("--------------------------")
+    print("Could not find MAC in given switch list")
 
 #Makes a list of ip addresses from a text file
 def Get_Switch_List(txt_file):

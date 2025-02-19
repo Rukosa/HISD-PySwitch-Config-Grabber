@@ -130,7 +130,19 @@ def edit_vlans_opt(switch_ip=0, serial_or_network=0, config_set=False, current_c
             edit_vlans_opt(0, serial_or_network, config_set, current_config, model_selected)
             return
     change_interface(switch_ip, selected_config[model_selection_dict[model_selected]])
-
+    
+def find_mac_opt(mac=None):
+    if mac == None:
+        mac_address_input = input("12 Digit Mac Address: ")
+        mac = mac_address_input
+        if len(mac_address_input) != 12:
+            find_mac_opt()
+    switch_txt = input("Name of text file of possible switches [no file extension!]: ")
+    if check_txt_exists(switch_txt):
+        find_mac(convert_mac(mac), switch_txt)
+    else:
+        find_mac_opt(mac)
+        return
 
 #Next 2 functions are courtesy of some *heavily* modified chatgpt code! It made some good comments so I'm leaving them :)
 #Parses an input structered like a dictionary and extracts variables wrapped in *asterisk*
@@ -189,3 +201,6 @@ def check_txt_exists(txt_file):
         return True
     print(f"{txt_file}.txt does not exist...")
     return False
+
+def convert_mac(s):
+    return s[:4] + '.' + s[4:8] + '.' + s[8:]
