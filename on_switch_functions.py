@@ -2,6 +2,7 @@ from netmiko import ConnectHandler
 import ipaddress   
 import time
 import getpass
+import os
 
 #Returns the connection details of a switch given the IP.
 def switch_connect(switch_ip, username="", password=""):
@@ -53,6 +54,7 @@ def switch_connect(switch_ip, username="", password=""):
 
 #Grabs a config given a text file
 def grabconfigtxt(txt_file_name):
+    os.makedirs(txt_file_name, exist_ok=True)
     switch_list = Get_Switch_List(f"{txt_file_name}.txt")
     username = input("Username: ")
     try:
@@ -75,9 +77,10 @@ def grabconfigtxt(txt_file_name):
             
             #File write
             print(f"Working on: {switch_hostname}\n")
-            switch_txt = open(f"{switch_hostname}.txt", "w")
-            switch_txt.write(conf_output)
-            switch_txt.close()
+            txt_path = os.path.join(txt_file_name, switch_hostname + ".txt")
+            with open(txt_path, "w") as file:
+                file.write(conf_output)
+                file.close()
             print(f"Completed: {switch_hostname}\n")
             
             time.sleep(1) #As to not attempt to make every connection in half a second...
