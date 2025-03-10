@@ -174,6 +174,7 @@ def change_interface(switch_ip, config_dict, connected=False, net_connect=None):
 def find_mac(mac, txt_file_name):
     switch_list = Get_Switch_List(f"{txt_file_name}.txt")
     username = input("Username: ")
+    mac_found = False
     try:
         password = getpass.getpass()
     except Exception as err:
@@ -196,7 +197,8 @@ def find_mac(mac, txt_file_name):
                 print(switch_ip)
                 print(switch_hostname + " " + mac_output)
                 print("--------------------------")
-                return
+                mac_found = True
+                
             
             time.sleep(1) #As to not attempt to make every connection in half a second...
         except Exception as err:
@@ -204,7 +206,8 @@ def find_mac(mac, txt_file_name):
             print(switch_ip)
             print(err)
             print("--------------------------")
-    print("Could not find MAC in given switch list")
+    if not mac_found:
+        print("Could not find MAC in given switch list")
 
 #Makes a list of ip addresses from a text file
 def Get_Switch_List(txt_file):
