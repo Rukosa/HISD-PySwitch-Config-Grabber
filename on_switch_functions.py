@@ -192,6 +192,10 @@ def find_mac(mac, txt_file_name):
             switch_hostname = (net_connect.send_command('show conf | include hostname').split()[1])
             mac_output = net_connect.send_command('show mac address-table | include ' + mac)
             if mac in mac_output:
+                int_of_mac = mac_output.split()[3]
+                int_mode = net_connect.send_command('show int ' + int_of_mac + ' switchport | include Operational Mode')
+                if 'trunk' in int_mode:
+                    continue
                 print("--------------------------")
                 print("MAC Found at:")
                 print(switch_ip)
